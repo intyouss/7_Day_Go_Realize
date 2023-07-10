@@ -16,8 +16,8 @@ func New() *Engine {
 	}
 }
 
-func (e *Engine) addRoute(method, path string, handler HandlerFunc) {
-	e.router.addRoute(method, path, handler)
+func (e *Engine) addRouter(method, path string, handler HandlerFunc) {
+	e.router.addRouter(method, path, handler)
 }
 
 func (e *Engine) Run(addr string) (err error) {
@@ -26,11 +26,11 @@ func (e *Engine) Run(addr string) (err error) {
 }
 
 func (e *Engine) GET(path string, handler HandlerFunc) {
-	e.addRoute("GET", path, handler)
+	e.addRouter("GET", path, handler)
 }
 
 func (e *Engine) POST(path string, handler HandlerFunc) {
-	e.addRoute("POST", path, handler)
+	e.addRouter("POST", path, handler)
 }
 
 func (e *Engine) ServeHTTP(w http.ResponseWriter, r *http.Request) {

@@ -12,7 +12,7 @@ func newRouter() *router {
 	}
 }
 
-func (r *router) addRoute(method, path string, handler HandlerFunc) {
+func (r *router) addRouter(method, path string, handler HandlerFunc) {
 	key := method + "-" + path
 	r.handlers[key] = handler
 }
