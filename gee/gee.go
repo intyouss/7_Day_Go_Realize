@@ -12,9 +12,7 @@ type Engine struct {
 
 func New() *Engine {
 	return &Engine{
-		router: &router{
-			handlers: make(map[string]HandlerFunc),
-		},
+		router: newRouter(),
 	}
 }
 
@@ -29,6 +27,10 @@ func (e *Engine) Run(addr string) (err error) {
 
 func (e *Engine) GET(path string, handler HandlerFunc) {
 	e.addRoute("GET", path, handler)
+}
+
+func (e *Engine) POST(path string, handler HandlerFunc) {
+	e.addRoute("POST", path, handler)
 }
 
 func (e *Engine) ServeHTTP(w http.ResponseWriter, r *http.Request) {
