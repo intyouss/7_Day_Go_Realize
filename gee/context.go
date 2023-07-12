@@ -70,7 +70,7 @@ func (c *Context) SetHeader(key, value string) {
 
 func (c *Context) JSON(statusCode int, obj any) {
 	c.SetHeader("Content-Type", "application/json")
-	c.SetStatus(http.StatusOK)
+	c.SetStatus(statusCode)
 	jsonData := json.NewEncoder(c.Writer)
 	if err := jsonData.Encode(obj); err != nil {
 		http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
