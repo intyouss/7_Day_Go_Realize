@@ -1,36 +1,59 @@
 package gee
 
 import (
+	"log"
 	"net/http"
 )
 
 type HandlerFunc func(c *Context)
 
 type Engine struct {
+	*RouterGroup
 	router *router
+	groups []*RouterGroup
+}
+
+type RouterGroup struct {
+	prefix      string
+	middlewares []HandlerFunc
+	parent      *RouterGroup
+	engine      *Engine
 }
 
 func New() *Engine {
-	return &Engine{
-		router: newRouter(),
+	engine := &Engine{router: newRouter()}
+	engine.RouterGroup = &RouterGroup{engine: engine}
+	engine.groups = []*RouterGroup{engine.RouterGroup}
+	return engine
+}
+
+func (group *RouterGroup) Group(prefix string) *RouterGroup {
+	engine := group.engine
+	newGroup := &RouterGroup{
+		prefix:      prefix,
+		middlewares: make([]HandlerFunc, 0),
+		parent:      group,
+		engine:      engine,
 	}
+	engine.groups = append(engine.groups, newGroup)
+	return newGroup
 }
 
-func (e *Engine) addRouter(method, path string, handler HandlerFunc) {
-	e.router.addRouter(method, path, handler)
+func (group *RouterGroup) addRouter(method, path string, handler HandlerFunc) {
+	pattern := group.prefix + path
+	log.Printf("Router %4s - %s", method, pattern)
+	group.engine.router.addRouter(method, pattern, handler)
+}
+func (group *RouterGroup) GET(pattern string, handler HandlerFunc) {
+	group.addRouter("GET", pattern, handler)
 }
 
+func (group *RouterGroup) POST(pattern string, handler HandlerFunc) {
+	group.addRouter("POST", pattern, handler)
+}
 func (e *Engine) Run(addr string) (err error) {
 	err = http.ListenAndServe(addr, e)
 	return
-}
-
-func (e *Engine) GET(path string, handler HandlerFunc) {
-	e.addRouter("GET", path, handler)
-}
-
-func (e *Engine) POST(path string, handler HandlerFunc) {
-	e.addRouter("POST", path, handler)
 }
 
 func (e *Engine) ServeHTTP(w http.ResponseWriter, r *http.Request) {
