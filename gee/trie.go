@@ -6,24 +6,24 @@ import (
 
 type node struct {
 	pattern  string
-	part     string
+	part     string //ps: :lang
 	children []*node
-	isWild   bool
+	isFuzzy  bool
 }
 
-func (n *node) matchChild(part string) *node {
+func (n *node) matchChild(part string) (*node, bool) {
 	for _, child := range n.children {
-		if part == child.part || child.isWild {
-			return child
+		if part == child.part {
+			return child, true
 		}
 	}
-	return nil
+	return nil, false
 }
 
 func (n *node) matchChildren(part string) []*node {
 	nodes := make([]*node, 0)
 	for _, child := range n.children {
-		if part == child.part || child.isWild {
+		if part == child.part || child.isFuzzy {
 			nodes = append(nodes, child)
 		}
 	}
@@ -37,9 +37,10 @@ func (n *node) insert(pattern string, parts []string, height int) {
 	}
 
 	part := parts[height]
-	child := n.matchChild(part)
-	if child == nil {
-		child = &node{part: part, isWild: part[0] == ':' || part[0] == '*'}
+
+	child, ok := n.matchChild(part)
+	if !ok {
+		child = &node{part: part, isFuzzy: part[0] == ':' || part[0] == '*'}
 		n.children = append(n.children, child)
 	}
 	child.insert(pattern, parts, height+1)
@@ -48,9 +49,9 @@ func (n *node) insert(pattern string, parts []string, height int) {
 func (n *node) search(parts []string, height int) *node {
 	if len(parts) == height || strings.HasPrefix(n.part, "*") {
 		if n.pattern == "" {
+			// fmt.Println("........", parts)
 			return nil
 		}
-	} else {
 		return n
 	}
 
