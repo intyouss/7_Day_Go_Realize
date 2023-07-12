@@ -69,10 +69,13 @@ func (r *router) getRouter(method string, pattern string) (*node, map[string]str
 func (r *router) handler(c *Context) {
 	n, params := r.getRouter(c.Method, c.Path)
 	if n != nil {
-		c.Params = params
 		key := c.Method + "-" + n.pattern
-		r.handlers[key](c)
+		c.Params = params
+		c.middlewares = append(c.middlewares, r.handlers[key])
 	} else {
-		c.Writer.WriteHeader(http.StatusNotFound)
+		c.middlewares = append(c.middlewares, func(c *Context) {
+			c.Writer.WriteHeader(http.StatusNotFound)
+		})
 	}
+	c.Next()
 }
