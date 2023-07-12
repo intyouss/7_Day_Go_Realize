@@ -16,7 +16,6 @@ type Engine struct {
 type RouterGroup struct {
 	prefix      string
 	middlewares []HandlerFunc
-	parent      *RouterGroup
 	engine      *Engine
 }
 
@@ -32,7 +31,6 @@ func (group *RouterGroup) Group(prefix string) *RouterGroup {
 	newGroup := &RouterGroup{
 		prefix:      prefix,
 		middlewares: make([]HandlerFunc, 0),
-		parent:      group,
 		engine:      engine,
 	}
 	engine.groups = append(engine.groups, newGroup)
