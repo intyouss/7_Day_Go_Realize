@@ -75,6 +75,7 @@ func (r *router) handler(c *Context) {
 	} else {
 		c.middlewares = append(c.middlewares, func(c *Context) {
 			c.SetStatus(http.StatusNotFound)
+			c.Writer.WriteHeader(http.StatusNotFound)
 		})
 	}
 	c.Next()

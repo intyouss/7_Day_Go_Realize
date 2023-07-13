@@ -42,9 +42,9 @@ func (c *Context) Next() {
 	}
 }
 
-func (c *Context) Fail(code int, err string) {
+func (c *Context) Fail(code int, err error) {
 	c.index = len(c.middlewares)
-	c.JSON(code, H{"message": err})
+	c.StatusCode = code
 }
 
 func (c *Context) Param(key string) string {
@@ -62,7 +62,7 @@ func (c *Context) Query(key string) string {
 
 func (c *Context) SetStatus(statusCode int) {
 	c.StatusCode = statusCode
-	c.Writer.WriteHeader(statusCode)
+	// c.Writer.WriteHeader(statusCode)
 }
 
 func (c *Context) SetHeader(key, value string) {
@@ -74,7 +74,7 @@ func (c *Context) JSON(statusCode int, obj any) {
 	c.SetStatus(statusCode)
 	jsonData := json.NewEncoder(c.Writer)
 	if err := jsonData.Encode(obj); err != nil {
-		http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
+		c.Fail(http.StatusInternalServerError, err)
 	}
 }
 
@@ -83,7 +83,7 @@ func (c *Context) String(statusCode int, format string, values ...any) {
 	c.SetStatus(statusCode)
 	_, err := c.Writer.Write([]byte(fmt.Sprintf(format, values...)))
 	if err != nil {
-		http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
+		c.Fail(http.StatusInternalServerError, err)
 	}
 }
 
@@ -91,15 +91,14 @@ func (c *Context) Data(statusCode int, data []byte) {
 	c.SetStatus(statusCode)
 	_, err := c.Writer.Write(data)
 	if err != nil {
-		http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
+		c.Fail(http.StatusInternalServerError, err)
 	}
 }
 
 func (c *Context) HTML(statusCode int, name string, data any) {
 	c.SetHeader("Content-Type", "text/html")
+	c.SetStatus(statusCode)
 	if err := c.engine.htmlTemplates.ExecuteTemplate(c.Writer, name, data); err != nil {
-		c.Fail(http.StatusInternalServerError, err.Error())
-	} else {
-		c.SetStatus(statusCode)
+		c.Fail(http.StatusInternalServerError, err)
 	}
 }

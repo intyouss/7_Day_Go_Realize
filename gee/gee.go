@@ -1,7 +1,6 @@
 package gee
 
 import (
-	"fmt"
 	"html/template"
 	"log"
 	"net/http"
@@ -72,13 +71,13 @@ func (group *RouterGroup) createStaticHandler(simplePath string, fs http.FileSys
 		}
 		c.SetStatus(http.StatusOK)
 		fileServer.ServeHTTP(c.Writer, c.Req)
-		fmt.Println(c.StatusCode)
 	}
 }
 
 func (group *RouterGroup) Static(simplePath string, root string) {
 	handler := group.createStaticHandler(simplePath, http.Dir(root))
-	group.GET(simplePath, handler)
+	urlPattern := path.Join(simplePath, "/*filepath")
+	group.GET(urlPattern, handler)
 }
 
 func (e *Engine) SetFuncMap(funcMap template.FuncMap) {
