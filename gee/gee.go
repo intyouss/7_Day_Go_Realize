@@ -37,6 +37,12 @@ func Default() *Engine {
 	return e
 }
 
+func (group *RouterGroup) addRouter(method, path string, handler HandlerFunc) {
+	pattern := group.prefix + path
+	log.Printf("Router %4s - %s", method, pattern)
+	group.engine.router.addRouter(method, pattern, handler)
+}
+
 func (group *RouterGroup) Group(prefix string) *RouterGroup {
 	engine := group.engine
 	newGroup := &RouterGroup{
@@ -52,12 +58,6 @@ func (group *RouterGroup) Use(middlewares ...HandlerFunc) {
 	group.middlewares = append(group.middlewares, middlewares...)
 }
 
-func (group *RouterGroup) addRouter(method, path string, handler HandlerFunc) {
-	pattern := group.prefix + path
-	log.Printf("Router %4s - %s", method, pattern)
-	group.engine.router.addRouter(method, pattern, handler)
-}
-
 func (group *RouterGroup) GET(pattern string, handler HandlerFunc) {
 	group.addRouter("GET", pattern, handler)
 }
@@ -66,6 +66,7 @@ func (group *RouterGroup) POST(pattern string, handler HandlerFunc) {
 	group.addRouter("POST", pattern, handler)
 }
 
+// template
 func (group *RouterGroup) createStaticHandler(simplePath string, fs http.FileSystem) HandlerFunc {
 	absolutePath := path.Join(group.prefix, simplePath)
 	fileServer := http.StripPrefix(absolutePath, http.FileServer(fs))

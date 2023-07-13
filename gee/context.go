@@ -42,6 +42,14 @@ func (c *Context) Next() {
 	}
 }
 
+func (c *Context) SetStatus(statusCode int) {
+	c.StatusCode = statusCode
+}
+
+func (c *Context) SetHeader(key, value string) {
+	c.Writer.Header().Set(key, value)
+}
+
 func (c *Context) Fail(code int, err error) {
 	c.index = len(c.middlewares)
 	c.SetStatus(code)
@@ -59,14 +67,6 @@ func (c *Context) PostForm(key string) string {
 
 func (c *Context) Query(key string) string {
 	return c.Req.URL.Query().Get(key)
-}
-
-func (c *Context) SetStatus(statusCode int) {
-	c.StatusCode = statusCode
-}
-
-func (c *Context) SetHeader(key, value string) {
-	c.Writer.Header().Set(key, value)
 }
 
 func (c *Context) JSON(statusCode int, obj any) {
