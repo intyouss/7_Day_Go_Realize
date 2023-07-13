@@ -75,8 +75,7 @@ func (group *RouterGroup) createStaticHandler(simplePath string, fs http.FileSys
 
 func (group *RouterGroup) Static(simplePath string, root string) {
 	handler := group.createStaticHandler(simplePath, http.Dir(root))
-	urlPattern := path.Join(group.prefix, simplePath)
-	group.GET(urlPattern, handler)
+	group.GET(simplePath, handler)
 }
 
 func (e *Engine) SetFuncMap(funcMap template.FuncMap) {
