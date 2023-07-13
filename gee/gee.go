@@ -31,6 +31,12 @@ func New() *Engine {
 	return engine
 }
 
+func Default() *Engine {
+	e := New()
+	e.Use(Logger(), Recovery())
+	return e
+}
+
 func (group *RouterGroup) Group(prefix string) *RouterGroup {
 	engine := group.engine
 	newGroup := &RouterGroup{
@@ -66,7 +72,7 @@ func (group *RouterGroup) createStaticHandler(simplePath string, fs http.FileSys
 	return func(c *Context) {
 		file := c.Param("filepath")
 		if _, err := fs.Open(file); err != nil {
-			c.SetStatus(http.StatusNotFound)
+			c.Fail(http.StatusNotFound, err)
 			return
 		}
 		c.SetStatus(http.StatusOK)

@@ -1,6 +1,7 @@
 package gee
 
 import (
+	"errors"
 	"net/http"
 	"strings"
 )
@@ -74,8 +75,7 @@ func (r *router) handler(c *Context) {
 		c.middlewares = append(c.middlewares, r.handlers[key])
 	} else {
 		c.middlewares = append(c.middlewares, func(c *Context) {
-			c.SetStatus(http.StatusNotFound)
-			c.Writer.WriteHeader(http.StatusNotFound)
+			c.Fail(http.StatusNotFound, errors.New("no resources found"))
 		})
 	}
 	c.Next()

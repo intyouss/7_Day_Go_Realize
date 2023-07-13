@@ -44,7 +44,8 @@ func (c *Context) Next() {
 
 func (c *Context) Fail(code int, err error) {
 	c.index = len(c.middlewares)
-	c.StatusCode = code
+	c.SetStatus(code)
+	http.Error(c.Writer, err.Error(), code)
 }
 
 func (c *Context) Param(key string) string {
@@ -62,7 +63,6 @@ func (c *Context) Query(key string) string {
 
 func (c *Context) SetStatus(statusCode int) {
 	c.StatusCode = statusCode
-	// c.Writer.WriteHeader(statusCode)
 }
 
 func (c *Context) SetHeader(key, value string) {
