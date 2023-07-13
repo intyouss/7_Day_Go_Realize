@@ -21,6 +21,7 @@ type Context struct {
 	// middleware
 	middlewares []HandlerFunc
 	index       int
+	engine      *Engine
 }
 
 func newContext(w http.ResponseWriter, r *http.Request) *Context {
@@ -79,7 +80,7 @@ func (c *Context) JSON(statusCode int, obj any) {
 
 func (c *Context) String(statusCode int, format string, values ...any) {
 	c.SetHeader("Content-Type", "text/plain")
-	c.SetStatus(http.StatusOK)
+	c.SetStatus(statusCode)
 	_, err := c.Writer.Write([]byte(fmt.Sprintf(format, values...)))
 	if err != nil {
 		http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
@@ -87,18 +88,18 @@ func (c *Context) String(statusCode int, format string, values ...any) {
 }
 
 func (c *Context) Data(statusCode int, data []byte) {
-	c.SetStatus(http.StatusOK)
+	c.SetStatus(statusCode)
 	_, err := c.Writer.Write(data)
 	if err != nil {
 		http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
 	}
 }
 
-func (c *Context) HTML(statusCode int, html string) {
+func (c *Context) HTML(statusCode int, name string, data any) {
 	c.SetHeader("Content-Type", "text/html")
-	c.SetStatus(http.StatusOK)
-	_, err := c.Writer.Write([]byte(html))
-	if err != nil {
-		http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
+	c.SetStatus(statusCode)
+	// _, err := c.Writer.Write([]byte(html))
+	if err := c.engine.htmlTemplates.ExecuteTemplate(c.Writer, name, data); err != nil {
+		c.Fail(http.StatusInternalServerError, err.Error())
 	}
 }

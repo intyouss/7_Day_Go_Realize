@@ -1,8 +1,10 @@
 package gee
 
 import (
+	"html/template"
 	"log"
 	"net/http"
+	"path"
 	"strings"
 )
 
@@ -10,8 +12,10 @@ type HandlerFunc func(c *Context)
 
 type Engine struct {
 	*RouterGroup
-	router *router
-	groups []*RouterGroup
+	router        *router
+	groups        []*RouterGroup
+	htmlTemplates *template.Template
+	funcMap       template.FuncMap
 }
 
 type RouterGroup struct {
@@ -56,6 +60,33 @@ func (group *RouterGroup) POST(pattern string, handler HandlerFunc) {
 	group.addRouter("POST", pattern, handler)
 }
 
+func (group *RouterGroup) createStaticHandler(simplePath string, fs http.FileSystem) HandlerFunc {
+	absolutePath := path.Join(group.prefix, simplePath)
+	fileServer := http.StripPrefix(absolutePath, http.FileServer(fs))
+	return func(c *Context) {
+		file := c.Param("filepath")
+		if _, err := fs.Open(file); err != nil {
+			c.SetStatus(http.StatusNotFound)
+			return
+		}
+		fileServer.ServeHTTP(c.Writer, c.Req)
+	}
+}
+
+func (group *RouterGroup) Static(simplePath string, root string) {
+	handler := group.createStaticHandler(simplePath, http.Dir(root))
+	urlPattern := path.Join(group.prefix, simplePath)
+	group.GET(urlPattern, handler)
+}
+
+func (e *Engine) SetFuncMap(funcMap template.FuncMap) {
+	e.funcMap = funcMap
+}
+
+func (e *Engine) LoadHTMLGlob(pattern string) {
+	e.htmlTemplates = template.Must(template.New("").Funcs(e.funcMap).ParseGlob(pattern))
+}
+
 func (e *Engine) Run(addr string) (err error) {
 	err = http.ListenAndServe(addr, e)
 	return err
@@ -70,5 +101,6 @@ func (e *Engine) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	c := newContext(w, r)
 	c.middlewares = middlewares
+	c.engine = e
 	e.router.handler(c)
 }
