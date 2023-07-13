@@ -97,9 +97,9 @@ func (c *Context) Data(statusCode int, data []byte) {
 
 func (c *Context) HTML(statusCode int, name string, data any) {
 	c.SetHeader("Content-Type", "text/html")
-	c.SetStatus(statusCode)
-	// _, err := c.Writer.Write([]byte(html))
 	if err := c.engine.htmlTemplates.ExecuteTemplate(c.Writer, name, data); err != nil {
 		c.Fail(http.StatusInternalServerError, err.Error())
+	} else {
+		c.SetStatus(statusCode)
 	}
 }

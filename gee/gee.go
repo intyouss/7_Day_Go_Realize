@@ -1,6 +1,7 @@
 package gee
 
 import (
+	"fmt"
 	"html/template"
 	"log"
 	"net/http"
@@ -69,7 +70,9 @@ func (group *RouterGroup) createStaticHandler(simplePath string, fs http.FileSys
 			c.SetStatus(http.StatusNotFound)
 			return
 		}
+		c.SetStatus(http.StatusOK)
 		fileServer.ServeHTTP(c.Writer, c.Req)
+		fmt.Println(c.StatusCode)
 	}
 }
 
