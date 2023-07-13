@@ -24,7 +24,7 @@ func main() {
 	r.SetFuncMap(template.FuncMap{
 		"FormatAsDate": FormatAsDate,
 	})
-	r.LoadHTMLGlob("templates/*")
+	r.SetTemplatePath("templates/*")
 	r.Static("/assets", "./static")
 
 	stu1 := &student{Name: "Geektutu", Age: 20}
