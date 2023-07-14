@@ -31,15 +31,14 @@ func NewGroup(name string, cacheBytes int64, getter Getter) *Group {
 	if getter == nil {
 		panic("nil Getter")
 	}
-	mutex.Lock()
-	defer mutex.Unlock()
 	g := &Group{
 		name:      name,
 		getter:    getter,
 		mainCache: cache{cacheBytes: cacheBytes},
 	}
-
+	mutex.Lock()
 	groups[name] = g
+	mutex.Unlock()
 	return g
 }
 
@@ -67,7 +66,9 @@ func (g *Group) load(key string) (ByteView, error) {
 }
 
 func (g *Group) getLocally(key string) (ByteView, error) {
+	mutex.RLock()
 	bytes, err := g.getter.Get(key)
+	mutex.RUnlock()
 	if err != nil {
 		return ByteView{}, err
 	}
