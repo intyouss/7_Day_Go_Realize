@@ -50,22 +50,29 @@ func (c *Cache) RemoveOldest() {
 	}
 }
 
+func (c *Cache) beyondToRemove(bytes int64) {
+	for c.maxBytes != 0 && c.maxBytes < c.uBytes+bytes {
+		c.RemoveOldest()
+	}
+}
+
 func (c *Cache) Add(key string, value Value) {
 	if ele, ok := c.cache[key]; ok {
 		c.lList.MoveToFront(ele)
 		kv := ele.Value.(*entry)
-		c.uBytes += int64(value.Len()) - int64(kv.value.Len())
+		diffBytes := int64(value.Len()) - int64(kv.value.Len())
+		c.beyondToRemove(diffBytes)
+		c.uBytes += diffBytes
 		kv.value = value
 	} else {
+		sumBytes := int64(len(key)) + int64(value.Len())
+		c.beyondToRemove(sumBytes)
 		ele := c.lList.PushFront(&entry{
 			key:   key,
 			value: value,
 		})
 		c.cache[key] = ele
-		c.uBytes += int64(len(key)) + int64(value.Len())
-	}
-	for c.maxBytes != 0 && c.maxBytes < c.uBytes {
-		c.RemoveOldest()
+		c.uBytes += sumBytes
 	}
 }
 
