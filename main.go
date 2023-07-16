@@ -1,15 +1,30 @@
 package main
 
 import (
-	"gee"
+	"fmt"
+	"geeCache"
+	"log"
 	"net/http"
 )
 
-func main() {
-	r := gee.Default()
-	r.GET("/", func(c *gee.Context) {
-		c.String(http.StatusOK, "Hello\n")
-	})
+var db = map[string]string{
+	"Tom":  "630",
+	"Jack": "589",
+	"Sam":  "567",
+}
 
-	r.Run(":9999")
+func main() {
+	geeCache.NewGroup("scores", 2<<10, geeCache.GetterFunc(
+		func(key string) ([]byte, error) {
+			log.Println("[SlowDB] search key", key)
+			if v, ok := db[key]; ok {
+				return []byte(v), nil
+			}
+			return nil, fmt.Errorf("%s not exist", key)
+		}))
+
+	addr := "localhost:9999"
+	peers := geeCache.NewHTTPPool(addr)
+	log.Println("geeCache is running at", addr)
+	log.Fatal(http.ListenAndServe(addr, peers))
 }
