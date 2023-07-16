@@ -56,7 +56,7 @@ func (g *Group) Get(key string) (ByteView, error) {
 
 	if v, ok := g.mainCache.get(key); ok {
 		log.Println("[GeeCache] hit the resourse")
-		return v, nil
+		return ByteView{b: cloneBytes(v.b)}, nil
 	}
 	return g.load(key)
 }
