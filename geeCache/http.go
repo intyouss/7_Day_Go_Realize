@@ -86,7 +86,7 @@ func (p *HTTPPool) PickPeer(key string) (PeerGetter, bool) {
 	return nil, false
 }
 
-var _PeerGetter = (*HTTPPool)(nil)
+var _PeerPicker = (*HTTPPool)(nil)
 
 type httpGetter struct {
 	baseURL string
@@ -113,3 +113,5 @@ func (h *httpGetter) Get(group, key string) ([]byte, error) {
 	}
 	return bytes, nil
 }
+
+var _PeerGetter = (*httpGetter)(nil)
